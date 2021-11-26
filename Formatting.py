@@ -1,8 +1,8 @@
-
 class SIC(object):
     byte_size = int()
     instruction_format = int()
-    def __init__(self):
+    def __init__(self,):
+        byte_size = 
         print("__init__")
 
 class SICXE(SIC):
@@ -16,7 +16,6 @@ class SpecialSICXE(SICXE):
     def __init__(self):
         print("__init__")
 
-class FormatFactory(object): #calls the singletonTables to find the current instruction format then returns the corresponding object
-    def getFormat(self,instruction):
-        print("getFormat")
-    
+def FormatFactory(instruction): #calls the singletonTables to find the current instruction format then returns the corresponding object
+    format_type = SingletonTables.InstructionDictionary[instruction][0]
+    if(format_type = 0) return SIC()
