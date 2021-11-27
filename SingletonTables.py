@@ -3,6 +3,9 @@ class SingletonTables(object):#fuck microsoft, shit company. i hope they all die
     symbol_table = {}
     literal_table = {}
     instruction_table = {}
+    directive_table = {"RESW":3,"RESB":0,"WORD":3,"BYTE":0,"BUFFER":0}
+    unique_instruction_table = {'+':1, '&':0,'$':1}
+    unique_addressed_table = {'=':1,'@':1,'#':1}
     @staticmethod
     def getInstance():
         if SingletonTables.__instance == None:
@@ -27,3 +30,4 @@ class SingletonTables(object):#fuck microsoft, shit company. i hope they all die
         #print("getLiteral")
     def getInstructionOpcode(self):
         print("getInstructionOpcode")
+
