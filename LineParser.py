@@ -12,6 +12,18 @@ class Symbol(object):
     def assignSymbol(self): # calls SingletonTables.assignSymbolTable() to add itself
         singletonTables.assignToSymbolTable(self.symbol_name,self.symbol_loc)
         #print("assignSymbol")
+class Literal(object):#needs refactoring
+    literal_name = str()
+    literal_loc = int()
+    literal_size = int()
+    def __init__(self, literal_name, literal_loc,literal_size):
+        self.literal_name = literal_name
+        self.literal_loc = literal_loc
+        self.literal_size = literal_size
+        self.assignLiteral()
+        #print("Literally")
+    def assignLiteral(self): 
+        singletonTables.enqueueLiteral(self.literal_name, hex(self.literal_loc),self.literal_size)
 
 class Instruction(object): #
     instruction_name = str()
@@ -65,6 +77,8 @@ class LineDirection(object):
             self.symbol_obj = self.initSymbol(str_arr[0],loc_counter)
             self.instruction_obj = self.initInstruction(str_arr[1])
             self.addressed_obj = self.initAddressed(str_arr[2])
+        #if(self.addressed_obj.address_prefix == '='):
+        #    self.initLiteral(literal_name, loc_counter)
         #print("__init__")
     def checkLen(self):#checks how many strings
         print("checkLen")
@@ -72,26 +86,32 @@ class LineDirection(object):
         if symbol_name == ' ':
             return None
         return Symbol(symbol_name,loc_counter)
-        print("initSymbol")
+        #print("initSymbol")
+    def initLiteral(self, literal_name, loc_counter,size): #needs refactoring
+        if literal_name == ' ':
+            return None
+        return Literal(literal_name, loc_counter,size)
     def initInstruction(self,instruction_name):#calls singletonTable to get the instruction Opcode to save it in instruction_obj
         if(singletonTables.unique_instruction_table.get(instruction_name[0],-1) != -1): #error
             #print(instruction_name[1:], instruction_name[0])
             return Instruction(instruction_name[1:], instruction_name[0])
         return Instruction(instruction_name)
         #may have unique logic before creating instruction object
-        print("initInstruction")
+        #print("initInstruction")
     def initAddressed(self,adressed_name):#may have unique logic before creating address object
         if(adressed_name == ' '):
             return None
-        elif(singletonTables.unique_addressed_table.get(adressed_name[0],0) != 0 ):
+        elif(singletonTables.unique_addressed_table.get(adressed_name[0],0) != 0 ):    
+            #print(adressed_name[0])
+            if(adressed_name[0] == '='):
+                self.initLiteral(adressed_name[1:],self.loc_counter,self.convertOutliers(adressed_name[1:]))
             return Addressed(adressed_name[1:],adressed_name[0])
         return Addressed(adressed_name,0)
-        print("initAdressed")
+        #print("initAdressed")
     def byte_length(self,i):
         return (i.bit_length() + 7) // 8
 
     def convertOutliers(self,addressed):
-        print(addressed[0])
         if(addressed[0].upper() == 'C'):
             #print("herere")
             return len(addressed.split('\'')[1])
@@ -110,10 +130,11 @@ class LineDirection(object):
                 #if(self.convertOutliers(self.addressed_obj.content) > 3) 
             return (self.loc_counter + self.convertOutliers(self.addressed_obj.content[0]))
         elif(self.instruction_obj.instruction_name.upper() == 'RESW'):
-            print("A7A")
             return (self.loc_counter + 3*int(self.addressed_obj.content[0]))
         elif(self.instruction_obj.instruction_name.upper() == 'RESB'):
-            return hex((self.loc_counter - (-int(self.addressed_obj.content[0])))
+            return (self.loc_counter +int(self.addressed_obj.content[0]))
+        elif(self.instruction_obj.instruction_name.upper() == 'LTORG' or self.instruction_obj.instruction_name.upper() == 'END'):
+            return(self.loc_counter + singletonTables.getLiteralSize())
         #print("2nd: {} 3rd: {}".format(type(self.instruction_obj.instruction_format),type(singletonTables.unique_instruction_table.get(self.instruction_obj.format_char,0))))
-        return self.loc_counter + self.instruction_obj.instruction_format + singletonTables.unique_instruction_table.get(self.instruction_obj.format_char,0)
-        print("incrementLocationCounter")
+        return (self.loc_counter + self.instruction_obj.instruction_format + singletonTables.unique_instruction_table.get(self.instruction_obj.format_char,0))
+        #print("incrementLocationCounter")
