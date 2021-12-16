@@ -1,5 +1,7 @@
-class SingletonTables(object):#fuck microsoft, shit company. i hope they all die.
+class Library(object):#fuck microsoft, shit company. i hope they all die.
     __instance = None
+    starting_address = 0
+    base_address = None
     symbol_table = {}
     literal_queue = []
     literal_pool_size = int()
@@ -9,14 +11,14 @@ class SingletonTables(object):#fuck microsoft, shit company. i hope they all die
     unique_addressed_table = {'=':1,'@':1,'#':1}
     @staticmethod
     def getInstance():
-        if SingletonTables.__instance == None:
-            SingletonTables()
-        return SingletonTables.__instance
+        if Library.__instance == None:
+            Library()
+        return Library.__instance
     def __init__(self):
-        if SingletonTables.__instance != None:
+        if Library.__instance != None:
             raise Exception("This class has already been initialized")
         else:
-            SingletonTables.__instance = self
+            Library.__instance = self
     def assignToSymbolTable(self,symbol_name, location):
         #print(self.symbol_table)
         if(self.symbol_table.get(symbol_name,-1) != -1):
