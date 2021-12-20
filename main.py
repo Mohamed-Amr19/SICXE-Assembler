@@ -1,9 +1,10 @@
-# from SingletonTables import SingletonTables
+from SingletonTables import Library
 from FirstPass import FirstPass
+from ProgramCounter import ProgramCounter
 # from LineParser import * 
 import Formatting #has not been implemented 
 import sys
-
+programCounter = ProgramCounter.getInstance()
 def main():
     #making the first SIC/XE Pass    
     if(len(sys.argv) == 1):
@@ -14,11 +15,22 @@ def main():
     # tmp.LoadInstructions("InstructionDictionary.txt")
     #print(singletonTables.instruction_table)
     # tmp.ParseLines()
-    
+    singletonTables = Library.getInstance()
+    print(singletonTables.symbol_table)
     tmp.WriteFiles()
+    programCounter.getBase()
+    programCounter.resetStartingAddress()
+    for i in range(len(programCounter.line_array)-1):
+        line = programCounter.current_line
+        programCounter.calculateAddresses()
+        print(line.target_obj.address)
+        print("{}\t{}\t{}".format(hex(line.loc_counter),line.flags,hex(line.target_obj.address)))
+    # for i in ProgramCounter.line_array:
+    #     print("{} {} {}".format(hex(i.loc_counter),i.flags,i.calculateAddress()))
+    
     
     #print(FileWrapper.opened_file.read())    #example file reading debug
-    #singletonTables = SingletonTables.getInstance()
+    
     #singletonTables.assignToSymbolTable("add",200)
     #print(singletonTables.getSymbolLocation("add"))   #symbol table search
     

@@ -52,11 +52,35 @@ class Target(object):
     target_prefix = str()
     content = None
     string = None
+    multicontent_flag = None
+    X_flag = None
+    address = None
     def __init__(self, content, target_prefix):
-        self.address_prefix = target_prefix
-        self.content = content.split(',')
-    def DetermineContent(self): #checks if it's a single string or an array of string
-        print("DetermineContent")
+        self.target_prefix = target_prefix
+        self.multicontent_flag = True
+        self.X_flag = 0
+        self.address = 0
+        self.content = self.DetermineContent(content)#content.split(',')
+    def DetermineContent(self,content): #checks if it's a single string or an array of string
+        arr = []
+        arr2 = []
+        for i in enumerate(content):
+            if(i[1] in singletonTables.operands):
+                arr.append(i[0])
+        if(not len(arr)):
+            self.multicontent_flag = False
+            return(content)
+        i=len(arr)-1
+        arr2.append(content[:arr[0]])
+        arr2.append(content[arr[i]:])
+        if arr2[1] == ',X':
+            self.X_flag = 1
+            return arr2[0]
+        while(i != 0):
+            arr2.append(content[arr[i-1]:arr[i]])
+            i = i-1
+        return(arr2)
+    
 
 class Line(object):
     array_length = int()
@@ -77,15 +101,17 @@ class Line(object):
         if(self.array_length == 1):
             self.symbol_obj = None
             self.instruction_obj = self.initInstruction(str_arr[0])
-            self.target_obj = None
+            self.target_obj = self.initTarget(' ')
         elif(self.array_length == 2): 
             self.symbol_obj = None
             self.instruction_obj = self.initInstruction(str_arr[0])
             self.target_obj = self.initTarget(str_arr[1])
+            self.flags[2] = self.target_obj.X_flag
         elif(self.array_length == 3):
             self.symbol_obj = self.initSymbol(str_arr[0],loc_counter)
             self.instruction_obj = self.initInstruction(str_arr[1])
             self.target_obj = self.initTarget(str_arr[2])
+            self.flags[2] = self.target_obj.X_flag
         else:
             print("Error at line N, too many arguments")
             exit()
@@ -115,8 +141,7 @@ class Line(object):
         #print("initInstruction")
     def initTarget(self,target_name):#may have unique logic before creating address object
         if(target_name == ' '):
-            
-            return None
+            return Target(' ',0)
         elif(singletonTables.unique_addressed_table.get(target_name[0],0) != 0 ):    
             #print(adressed_name[0])
             if(target_name[0] == '='):
@@ -151,36 +176,89 @@ class Line(object):
     def getLocationCounter(self): #adds instruction_obj.format.byte_size to the current location counter
         #if(singletonTables.directive_table.get(self.instruction_obj.instruction_name,-1) != -1):
             #return self.loc_counter + singletonTables.directive_table.get(self.instruction_obj.instruction_name) + self.convertOutliers(self.addressed_obj.content)
+        # if(self.target_obj == None):
+            
+        # print(self.target_obj.content)
         if(self.instruction_obj.instruction_name.upper() == 'WORD'):
             return (self.loc_counter + 3)
         elif (self.instruction_obj.instruction_name.upper() == 'BYTE'):
                 #if(self.convertOutliers(self.addressed_obj.content) > 3) 
-            return (self.loc_counter + self.convertOutliers(self.target_obj.content[0]))
+            print(self.target_obj.content)
+            return (self.loc_counter + self.convertOutliers(self.target_obj.content))
         elif(self.instruction_obj.instruction_name.upper() == 'RESW'):
-            return (self.loc_counter + 3*int(self.target_obj.content[0]))
+            return (self.loc_counter + 3*int(self.target_obj.content))
         elif(self.instruction_obj.instruction_name.upper() == 'RESB'):
-            return (self.loc_counter +int(self.target_obj.content[0]))
+            return (self.loc_counter +int(self.target_obj.content))
         elif(self.instruction_obj.instruction_name.upper() == 'LTORG' or self.instruction_obj.instruction_name.upper() == 'END'):
             return(self.loc_counter + singletonTables.getLiteralSize())
+        elif(self.instruction_obj.instruction_name == "BASE"):
+            print("'{}'".format(self.target_obj.content))
+            if(self.target_obj.content == ' '):
+                print("painull")
+                singletonTables.base_address = self.loc_counter + self.instruction_obj.instruction_format + singletonTables.unique_instruction_table.get(self.instruction_obj.format_char,0)
+            else:
+                singletonTables.base_address = self.target_obj.content
+            print("base address: {}".format(singletonTables.base_address))
         #print("2nd: {} 3rd: {}".format(type(self.instruction_obj.instruction_format),type(singletonTables.unique_instruction_table.get(self.instruction_obj.format_char,0))))
         return (self.loc_counter + self.instruction_obj.instruction_format + singletonTables.unique_instruction_table.get(self.instruction_obj.format_char,0))
         #print("incrementLocationCounter")
 
-    def calculateAddress(self):
-        target_address = singletonTables.symbol_table.get(target_obj.content[0])
-        disp = target_address - self.loc_counter
-        try:
-            if(disp >= -2048 and disp <= 2047):
-                #b = 0 , p = 1
-                self.flags[3], self.flags[4] = 0,1
-                return disp
-            elif(disp < 4096 and disp > 0 ):
-                #b = 1 , p = 0
-                self.flags[3], self.flags[4] = 1,0
-                return singletonTable.base_address + disp
-        except:
-            print("Base Address hasn't been specified and the jump is too large for PC-relative addressing, Please use format 4 at ${self.loc_counter}")
-            exit()
+    # def calculateAddress(self):
+        # if(self.target_obj == None or self.instruction_obj.instruction_name in singletonTables.directive_table or self.target_obj.content in singletonTables.registers):
+        #     return 0
+        # elif(self.target_obj.target_prefix == '*'):
+        #     return self.loc_counter
+        # elif(self.target_obj.target_prefix == '#'):
+        #     try:
+        #         return int(self.target_obj.content)
+        #     except:
+        #         return self.calculateDisplacement(singletonTables.symbol_table.get(self.target_obj.content))
+        # elif(self.instruction_obj.format_char == '+'):
+        #     return singletonTables.symbol_table.get(self.target_obj.content)
+        # elif(self.target_obj.multicontent_flag == True): #This means there is an x flag
+        #     target_address = singletonTables.symbol_table.get(self.target_obj.content[0])
+        #     self.flags[2] = 1 
+        #     # for i in self.target_obj.content:
+        #     #     if(i[0] == '+'):
+        #     #         target_address = target_address + singletonTables.symbol_table.get(i[1:])
+        #     #     elif(i[0] == '-'):
+        #     #         target_address = target_address - singletonTables.symbol_table.get(i[1:])
+        #     #     else:
+        #     #         target_address = singletonTables.symbol_table.get(i)
+        #     return self.calculateDisplacement(target_address)
+        # print(self.target_obj)
+        # print("|{}|".format(self.target_obj.content))
+        # print(hex(self.loc_counter))
+        # print(singletonTables.symbol_table.get(self.target_obj.content))
+        # try:
+        #     return self.calculateDisplacement(singletonTables.symbol_table.get(self.target_obj.content))
+        # except:
+        #     print("{} label not found in symbol table".format(self.target_obj.content))
+        #     exit()
+        
+        # else:
+        #     return self.calculateDisplacement(singletonTables.symbol_table.get(self.target_obj.content))
+        
+    def calculateDisplacement(self,loc_counter,target_address):
+        if(target_address == None):
+            return 0
+        disp = target_address - self.loc_counter + self.instruction_obj.instruction_format
+        # print("disp = {} - {} = {}".format(target_address,self.loc_counter,disp))
+        #print("base address {}".format(singletonTables.base_address))
+        # try:
+        if(disp >= -2048 and disp <= 2047):
+            #b = 0 , p = 1
+            self.flags[3], self.flags[4] = 0,1
+            return disp
+        elif(target_address <= 4096 + singletonTables.base_address and target_address >= singletonTables.base_address ):
+            #b = 1 , p = 0
+            self.flags[3], self.flags[4] = 1,0
+            return target_address - singletonTables.base_address
+        # except:
+        else:
+            print("Base Address in line {} hasn't been specified and the jump is too large for PC-relative addressing, Please use format 4 at {}".format(self.instruction_obj.instruction_name,hex(self.loc_counter)))
+            exit()    
 
+    
     def toString(self):
-        return "{}\t{}\t{}\t{}".format(self.loc_counter, str(self.symbol_obj.symbol_name), str(self.instruction_obj.instruction_name), str(self.target_obj.content))
+        return "{}\t{}\t{}".format(self.loc_counter, self.flags, self.target_obj.address)
