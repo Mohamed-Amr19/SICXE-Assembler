@@ -1,4 +1,5 @@
-class Library(object):#fuck microsoft, shit company. i hope they all die.
+
+class Library(object):
     __instance = None
     starting_address = 0
     base_address = None
@@ -7,8 +8,10 @@ class Library(object):#fuck microsoft, shit company. i hope they all die.
     literal_pool_size = int()
     instruction_table = {} #unsure of this data struct
     directive_table = {"RESW":3,"RESB":0,"WORD":3,"BYTE":0,"BUFFER":0,"LTORG":0}
+    registers = ['A','B','S','T','X']
+    operands = ['+','-',',']
     unique_instruction_table = {'+':1, '&':0,'$':1}
-    unique_addressed_table = {'=':1,'@':1,'#':1}
+    unique_addressed_table = {'*':1,'=':1,'@':1,'#':1}
     @staticmethod
     def getInstance():
         if Library.__instance == None:

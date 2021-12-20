@@ -47,8 +47,8 @@ class FirstPass(object):
             # programCounter.loc_counter = line.getLocationCounter()
             programCounter.addLine(directLine)
         self.opened_file.close()    
-        for line in programCounter.line_array:
-            print("{} {}".format(hex(line.loc_counter), line.flags))
+        # for line in programCounter.line_array:
+        #     print("{} {}".format(hex(line.loc_counter), line.flags))
         # print(singletonTables.symbol_table)
         # print(singletonTables.literal_queue)
         print("Final Location: {}".format(hex(programCounter.loc_counter)))
