@@ -17,14 +17,21 @@ def main():
     # tmp.ParseLines()
     singletonTables = Library.getInstance()
     print(singletonTables.symbol_table)
+    tmp.secondPass()
+    programCounter.printArray()
     tmp.WriteFiles()
-    programCounter.getBase()
-    programCounter.resetStartingAddress()
-    for i in range(len(programCounter.line_array)-1):
-        line = programCounter.current_line
-        programCounter.calculateAddresses()
-        print(line.target_obj.address)
-        print("{}\t{}\t{}".format(hex(line.loc_counter),line.flags,hex(line.target_obj.address)))
+    
+    # programCounter.getBase()
+    # programCounter.resetStartingAddress()
+    # for i in range(len(programCounter.line_array)-1):
+    #     line = programCounter.current_line
+    #     programCounter.calculateAddresses()
+    #     # print(hex(line.target_obj.address))
+    #     line.generateObjectCode()
+        # print("{}|{}".format(hex(line.loc_counter),line.object_code))
+        #print(line.target_obj.address)
+        # print("{}\t{}\t{}".format(hex(line.loc_counter),line.flags,hex(line.target_obj.address)))
+    # tmp.secondPass()
     # for i in ProgramCounter.line_array:
     #     print("{} {} {}".format(hex(i.loc_counter),i.flags,i.calculateAddress()))
     

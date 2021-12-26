@@ -52,15 +52,27 @@ class ProgramCounter(object):
                 self.current_line.target_obj.address = singletonTables.symbol_table.get(self.current_line.target_obj.content)
                 self.nextLine()
                 return
-        print()
         self.current_line.target_obj.address = self.current_line.calculateDisplacement(self.loc_counter,singletonTables.symbol_table.get(self.current_line.target_obj.content))
         #print("{} {} {}".format(self.loc_counter,self.current_line.instruction_obj.instruction_name,self.current_line.target_obj.address))
         self.nextLine()
     def getBase(self):
         if(type(singletonTables.base_address) != int):
             singletonTables.base_address = singletonTables.getSymbolLocation(singletonTables.base_address)
+        print("Base address = {}".format(singletonTables.base_address))
 
-
+    def printArray(self):
+        for element in self.line_array:
+            print("{} | {} | {}".format(
+                hex(element.loc_counter),
+                element.symbol_obj.symbol_name,
+                element.instruction_obj.opcode,
+                hex(element.target_obj.address)
+                ))
+            # self.array[i].append(line.instruction_obj.opcode)
+            # self.array[i].append(line.flags)
+            # self.array[i].append(line.target_obj.address)
+            # self.array[i].append(line.object_code)
+            # print(self.array[i])
     def resetStartingAddress(self):
         self.line_counter = 0
         self.next_line = self.line_array[self.line_counter+1]

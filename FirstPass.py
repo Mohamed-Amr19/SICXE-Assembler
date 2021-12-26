@@ -53,10 +53,27 @@ class FirstPass(object):
         # print(singletonTables.literal_queue)
         print("Final Location: {}".format(hex(programCounter.loc_counter)))
         #return opened_file.readline()
+    def secondPass(self):
+        programCounter.getBase()
+        programCounter.resetStartingAddress()
+        for i in range(len(programCounter.line_array)-1):
+            line = programCounter.current_line
+            programCounter.calculateAddresses()
+            # print(hex(line.target_obj.address))
+            line.generateObjectCode()
+            # self.array[i].append(line.instruction_obj.opcode)
+            # self.array[i].append(line.flags)
+            # self.array[i].append(line.target_obj.address)
+            # self.array[i].append(line.object_code)
+            # print(self.array[i])
+
     def WriteFiles(self):
         tmp = open("out.txt", 'w')
         for element in self.array:
             st = element[0],'|', *element[1]
+            # st2 = st + element[2]
+            # print(type(element[2]))
+            # print("working as intended")
             tmp.write("\t".join(st))
             tmp.write("\n")
         tmp.close()
