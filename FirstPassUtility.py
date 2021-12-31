@@ -26,6 +26,8 @@ def getFirstLine(line):
     if START != "START":
         print("first line error: no start")
         exit()
+    first_line.append(program_name)
+    first_line.append(starting_address)
     return program_name, START, starting_address
 
 def WriteFiles(self):
@@ -49,7 +51,7 @@ def getInstructionSize(instruction):
         exit()
 
 def convertOutliers(target):
-    print("rem"+target)
+    # print("rem"+target)
     def byte_length(i):
         return (i.bit_length() + 7) // 8
     if(target[0].upper() == 'C'):
@@ -68,6 +70,10 @@ def getLiteralSize(literal_table):
     return size
 #global variables
 instruction_table = loadInstructions("InstructionDictionary.txt")
-special_instructions = ['+','$','#']
+special_instructions = ['+','$','&']
+reserved = ["BASE","RESW","RESB","WORD","BYTE","END"]
 placeholder = '-'
+seperator = '.'
+padding = '_'
+first_line = []
 # print(instruction_table)
