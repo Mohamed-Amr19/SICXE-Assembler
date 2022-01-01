@@ -34,7 +34,6 @@ def WriteFiles(self):
         output = open("out.txt", 'w')
 
 def getInstructionSize(instruction):
-    # global(instructio)
     format_flag = ' '
     if(instruction[0] in special_instructions):
         format_flag = instruction[0]
@@ -62,8 +61,7 @@ def convertOutliers(target):
 def getLiteralSize(literal_table):
     size = 0
     for element in literal_table:
-        size += literal_table.get(element)[1] #convertOutliers(literal_table.get(element[0]))
-    # print(size)
+        size += literal_table.get(element)[1] 
     return size
 def generateLiterals(literal_table,tmp_literals, FirstPass_output,loc):
     for literal in tmp_literals:
@@ -71,7 +69,6 @@ def generateLiterals(literal_table,tmp_literals, FirstPass_output,loc):
         literal_table[literal][0] = hex(loc)
         loc += literal_table[literal][1]
     return loc
-    # print("it's here {}".format(literal_table))
 def identifyData(star):
     if(star[0].upper() == 'C'):
         dat = hex(ord(star[2]))[2:]
@@ -93,5 +90,3 @@ skipper = '?'
 seperator = '.'
 padding = '_'
 first_line = []
-# print(instruction_table)
-# import SecondPass
