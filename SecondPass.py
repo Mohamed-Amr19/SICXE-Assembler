@@ -1,139 +1,142 @@
 from FirstPassUtility import *
 from FirstPass import *
 
-base_loc,base_target,final_address = FirstPass("Example_2.txt")
+base_loc,base_target,final_address = FirstPass("Example_4.txt")
 SecondPass_printable_table = []
 # for i in FirstPass_output:
 #     print(i)
 objectcode = []
+modification_table = []
 def pad(star,size,char):
     if(size > 0):
         return((size - len(star))*char + star)
     else:
         size = abs(size)
         return(star + (size - len(star))*char)
-def format1():
-    print("format 1")
-def format2(target):
-    if(',' in target):
-        r1,r2 = target.split(',')
-        r1 = registers.get(r1)
-        r2 = registers.get(r2)
-        if(r1 == None or r2 == None):
-            print("Missing Register input")
-            exit()
-        return([r1,r2])
-    if(target not in registers):
-        print("Register not found, exitting")
-        exit()
-    return([registers.get(target),'0'])
-    # print("format 2")
-def format3(loc_counter,target):
-    # "".join(objectcode[-1][1])
-    flags,target_address = getFlags(loc_counter,3,target)
-    flags = "".join(flags)
-    return([flags, target_address])
-    #print(hex(opcode)+hex(n,i) b p x e disp     )
-def format4(loc_counter,target):
-    flags,target_address = getFlags(loc_counter,4,target)
-    flags = "".join(flags)
-    return([flags, target_address])
-    # return(getFlags(loc_counter,4,target))
-def format5(loc_counter,target):
-    flags,target_address = getFlags(loc_counter,3,target)
-    flags = "".join(flags)
-    return([flags, target_address])
-    # return(getFlags(loc_counter,3,target))
-def format6(loc_counter,target):
-    flags,target_address = getFlags(loc_counter,4,target)
-    flags = "".join(flags)
-    return([flags, target_address])
-    # return(getFlags(loc_counter,4,target))
+
 
 def directive():
     return(['0','0','0','0','0'],0)
-def getFlags(loc_counter,format,target):     #Immediate “#” i=1, n=0 Value = TA
-                                #Indirect “@” i=0, n=1 Value = ((TA))
-    n,i,x,b,p,e = '1','1','0','0','0','0'   #simple in sicxe i=1 , n=1 Value = (TA)
-    flagzby=0
-    if(target == placeholder):
-        return([n,i,x,b,p,e],0)
-    if('#' in target):
-        n,i = '0','1'
-        target = target[1:]
-        flagzby=1
-        # print("It entered" + loc_counter)
-        try:
-            target_address = int(target)
-            return([n,i,x,b,p,e],(target_address))
-        except:
-            target_address = symbol_table.get(target)
-            return([n,i,x,b,p,e],(target_address))
-
-    elif('@' in target):
-        n,i = '1','0'
-        
-        #removing the # from target
-        target = target[1:]
-        flagzby=1
-        # if(target is INTEGER )
-        
-        try:
-            target_address = int(target)
-            return([n,i,x,b,p,e],(target_address))
-        except:
-            target_address = symbol_table.get(target)
-            # print("try me none",target)
-            # print(target_address)
-            return([n,i,x,b,p,e],(target_address))
-    elif('=' in target):
-        target_address = int(literal_table.get(target[3:-1])[0],16)
-        # print("literal check",target[3:-1],target_address)
-    else:
-        target_address = symbol_table.get(target)
-    if(',X' in target):
-        x = '1'
-        target = target[0:-2]
-        target_address = symbol_table.get(target)
-        return([n,i,x,b,p,e],(target_address))
-    # target_address = symbol_table.get(target)
-    if(format in [4,6] ):
-        if(flagzby==1):
-            target_address=int(target)
-        b,p,e = '0','0','1'
-        return([n,i,x,b,p,e],(target_address))
-    # print(symbol_table.get(target))
-    # print(loc_counter)
-    disp = target_address - (int(loc_counter,16) + format)
-    # print("base and displacement",base_loc,disp)
-    if(disp >= -2048 and disp < 0):
-        #b = 0 , p = 1
-        b,p = '0','1'
-        disp &= int('FFF',16)
-        # return disp
-    elif(disp <= 2047 and disp > 0):
-        #b = 0 , p = 1
-        b,p = '0','1'
-        # return disp
-    elif(target_address <= 4096 + base_loc and target_address >= base_loc ):
-        #b = 1 , p = 0
-        b,p = '1','0'
-        disp = target_address - base_loc
-    # except:
-    else:
-        print("Base Address hasn't been specified and the jump is too large for PC-relative addressing, Please use format 4 at {}".format(loc_counter))
-        exit()
-    # disp = hex(disp)[2:]
-    
-    return([n,i,x,b,p,e],(disp))
 
 
 def SecondPass():
-    
+    mod_flag = False
+    def format1():
+        print("format 1")
+    def format2(target):
+        if(',' in target):
+            r1,r2 = target.split(',')
+            r1 = registers.get(r1)
+            r2 = registers.get(r2)
+            if(r1 == None or r2 == None):
+                print("Missing Register input")
+                exit()
+            return([r1,r2])
+        if(target not in registers):
+            print("Register not found, exitting")
+            exit()
+        return([registers.get(target),'0'])
+        # print("format 2")
+    def format3(loc_counter,target):
+        # "".join(objectcode[-1][1])
+        flags,target_address = getFlags(loc_counter,3,target)
+        flags = "".join(flags)
+        return([flags, target_address])
+        #print(hex(opcode)+hex(n,i) b p x e disp     )
+    def format4(loc_counter,target):
+        flags,target_address = getFlags(loc_counter,4,target)
+        flags = "".join(flags)
+        return([flags, target_address])
+        # return(getFlags(loc_counter,4,target))
+    def format5(loc_counter,target):
+        flags,target_address = getFlags(loc_counter,3,target)
+        flags = "".join(flags)
+        return([flags, target_address])
+        # return(getFlags(loc_counter,3,target))
+    def format6(loc_counter,target):
+        flags,target_address = getFlags(loc_counter,4,target)
+        flags = "".join(flags)
+        return([flags, target_address])
+        # return(getFlags(loc_counter,4,target))
+    def getFlags(loc_counter,format,target):     #Immediate “#” i=1, n=0 Value = TA
+                                #Indirect “@” i=0, n=1 Value = ((TA))
+        n,i,x,b,p,e = '1','1','0','0','0','0'   #simple in sicxe i=1 , n=1 Value = (TA)
+        flagzby=0
+        if(target == placeholder):
+            return([n,i,x,b,p,e],0)
+        if('#' in target):
+            n,i = '0','1'
+            target = target[1:]
+            flagzby=1
+            # print("It entered" + loc_counter)
+            try:
+                target_address = int(target)
+                return([n,i,x,b,p,e],(target_address))
+            except:
+                target_address = symbol_table.get(target)
+                return([n,i,x,b,p,e],(target_address))
+
+        elif('@' in target):
+            n,i = '1','0'
+            
+            #removing the # from target
+            target = target[1:]
+            flagzby=1
+            # if(target is INTEGER )
+            
+            try:
+                target_address = int(target)
+                return([n,i,x,b,p,e],(target_address))
+            except:
+                target_address = symbol_table.get(target)
+                # print("try me none",target)
+                # print(target_address)
+                return([n,i,x,b,p,e],(target_address))
+        elif('=' in target):
+            target_address = int(literal_table.get(target[3:-1])[0],16)
+            # print("literal check",target[3:-1],target_address)
+        else:
+            target_address = symbol_table.get(target)
+        if(',X' in target):
+            x = '1'
+            target = target[0:-2]
+            target_address = symbol_table.get(target)
+            return([n,i,x,b,p,e],(target_address))
+        # target_address = symbol_table.get(target)
+        if(format in [4,6] ):
+            if(flagzby==1):
+                target_address=int(target)
+            b,p,e = '0','0','1'
+            return([n,i,x,b,p,e],(target_address))
+        # print(symbol_table.get(target))
+        # print(loc_counter)
+        disp = target_address - (int(loc_counter,16) + format)
+        # print("base and displacement",base_loc,disp)
+        if(disp >= -2048 and disp < 0):
+            #b = 0 , p = 1
+            b,p = '0','1'
+            disp &= int('FFF',16)
+            # return disp
+        elif(disp <= 2047 and disp > 0):
+            #b = 0 , p = 1
+            b,p = '0','1'
+            # return disp
+        elif(target_address <= 4096 + base_loc and target_address >= base_loc ):
+            #b = 1 , p = 0
+            b,p = '1','0'
+            disp = target_address - base_loc
+        # except:
+        else:
+            print("Base Address hasn't been specified and the jump is too large for PC-relative addressing, Please use format 4 at {}".format(loc_counter))
+            exit()
+        # disp = hex(disp)[2:]
+        
+        return([n,i,x,b,p,e],(disp))
+
     for line in FirstPass_output:
         
         loc_counter, label, instruction, target = line
-        
+        mod_flag = False
         # print(loc_counter, label, instruction, target)
 
         if(instruction in reserved):
@@ -164,7 +167,7 @@ def SecondPass():
             form+=1
             opcode = opcode >> 2
             objectcode.append([opcode,*format4(loc_counter,target)])
-            
+            mod_flag = True
 
         elif(instruction[0] =='&'):
 
@@ -253,8 +256,11 @@ def SecondPass():
         objectcode[-1][2] = hex(objectcode[-1][2])[2:]
         size = 3 if form == 3 else 5
         if(len(objectcode[-1][2]) < size):
-            objectcode[-1][2] = (size - len(objectcode[-1][2]))*'0' + objectcode[-1][2]
+            objectcode[-1][2] = pad(objectcode[-1][2],size,'0')#(size - len(objectcode[-1][2]))*'0' + objectcode[-1][2]
         ocode = bin(objectcode[-1][0])[2:] + objectcode[-1][1] #+ objectcode[-1][2]
+        if(mod_flag):
+            modification_table.append([loc_counter,instruction,size])
+        #ensure that the opcode and flags are 3 bytes
         ocode = pad(hex(int(ocode,2))[2:],3,'0')
         ocode += objectcode[-1][2]
         
@@ -350,8 +356,32 @@ def GenerateTRecords():
     # opcode_record = 'T.' + opcode
 # for i in objectcode:
 #     print(i)
-print(GenerateHRecord())
-recs = GenerateTRecords()
-for i in recs:
-    print(i)
-# def GenerateHTE():
+def GenerateERecord():
+    return( 'E.' + pad(objectcode[0][0][2:],6,'0'))
+def GenerateMRecord():
+    records = []
+    for loc,inst,offset in modification_table:
+        loc = pad(loc[2:],6,'0') + '.'
+        offset = pad(hex(offset)[2:],2,'0')#+'.' #disabled till sectioning is done
+        records.append("M."+loc+offset)
+    return records
+# print(GenerateHRecord())
+# recs = GenerateTRecords()
+# for i in recs:
+#     print(i)
+# GenerateERecord()
+# print(GenerateERecord())
+
+print(modification_table)
+def GenerateHTE():
+    opened_file = open("output/hte_record.txt",'w')
+    opened_file.write(GenerateHRecord()+'\n')
+    Trecs = GenerateTRecords()
+    Mrecs = GenerateMRecord()
+    for rec in Trecs:
+        opened_file.write(rec+'\n')
+    for rec in Mrecs:
+        opened_file.write(rec+'\n')
+    opened_file.write(GenerateERecord())
+    opened_file.close()
+GenerateHTE()
