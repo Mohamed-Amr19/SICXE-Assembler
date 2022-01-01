@@ -49,13 +49,10 @@ def getInstructionSize(instruction):
     else:
         print(instruction + " Instruction not found,exiting")
         exit()
-
-def convertOutliers(target):
-    # print("rem"+target)
-    def byte_length(i):
+def byte_length(i):
         return (i.bit_length() + 7) // 8
+def convertOutliers(target):
     if(target[0].upper() == 'C'):
-        #print("herere")
         return len(target.split('\'')[1])
     elif(target[0].upper() == 'X'):
         return byte_length(int(target.split('\'')[1],16))
@@ -65,15 +62,36 @@ def convertOutliers(target):
 def getLiteralSize(literal_table):
     size = 0
     for element in literal_table:
-        size += convertOutliers(literal_table.get(element))
-    print(size)
+        size += literal_table.get(element)[1] #convertOutliers(literal_table.get(element[0]))
+    # print(size)
     return size
+def generateLiterals(literal_table,tmp_literals, FirstPass_output,loc):
+    for literal in tmp_literals:
+        FirstPass_output.append([hex(loc),placeholder,placeholder,tmp_literals.get(literal)[2]])
+        literal_table[literal][0] = hex(loc)
+        loc += literal_table[literal][1]
+    return loc
+    # print("it's here {}".format(literal_table))
+def identifyData(star):
+    if(star[0].upper() == 'C'):
+        dat = hex(ord(star[2]))[2:]
+        for ch in star[3:-1]:
+            dat += hex(ord(ch))[2:]
+        return dat
+    elif(star[0].upper() == 'X'):
+        return star[2:-1]
+    else:
+        return hex(int(star))[2:]
+
 #global variables
 instruction_table = loadInstructions("InstructionDictionary.txt")
 special_instructions = ['+','$','&']
-reserved = ["BASE","RESW","RESB","WORD","BYTE","END"]
+reserved = ["BASE","RESW","RESB","WORD","BYTE","END","LTORG"]
+registers = {"A":"0","X":"1","L":"2","B":"3","S":"4","T":"5","F":"6"}
 placeholder = '-'
+skipper = '?'
 seperator = '.'
 padding = '_'
 first_line = []
 # print(instruction_table)
+# import SecondPass
