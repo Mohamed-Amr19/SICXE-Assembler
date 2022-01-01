@@ -1,8 +1,8 @@
 from FirstPassUtility import *
 from FirstPass import *
 
-base_loc,base_target,final_address = FirstPass("Example_4.txt")
-
+base_loc,base_target,final_address = FirstPass("Example_2.txt")
+SecondPass_printable_table = []
 # for i in FirstPass_output:
 #     print(i)
 objectcode = []
@@ -19,7 +19,13 @@ def format2(target):
         r1,r2 = target.split(',')
         r1 = registers.get(r1)
         r2 = registers.get(r2)
+        if(r1 == None or r2 == None):
+            print("Missing Register input")
+            exit()
         return([r1,r2])
+    if(target not in registers):
+        print("Register not found, exitting")
+        exit()
     return([registers.get(target),'0'])
     # print("format 2")
 def format3(loc_counter,target):
@@ -144,6 +150,9 @@ def SecondPass():
                 objectcode.append([loc_counter,skipper])
             else:
                 objectcode.append([loc_counter,placeholder])
+            ocode = objectcode[-1][1]
+            printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ocode
+            SecondPass_printable_table.append(printered)
             continue
 
         elif(instruction[0] =='+'):
@@ -175,19 +184,27 @@ def SecondPass():
             opcode = opcode >> 2
             objectcode.append([opcode,*format6(loc_counter,target)])
         elif(instruction == placeholder):
+            printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+target
+            SecondPass_printable_table.append(printered)
             objectcode.append([loc_counter,target])
             continue
         else:
             form,opcode = instruction_table.get(instruction)
+            # print(form,hex(opcode))
             if(form == 1):
                 # format1()
+                printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ opcode
+                SecondPass_printable_table.append(printered)
                 objectcode.append([loc_counter,opcode])
                 continue
             elif(form == 2):
                 # dat = int(opcode,16)
                 # dat = hex(dat),format2(target)
                 # print(loc_counter,instruction,target)
-                objectcode.append([loc_counter,hex(opcode)[2:]+"".join(format2(target))])
+                ocode = hex(opcode)[2:]+"".join(format2(target))
+                printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ocode
+                SecondPass_printable_table.append(printered)
+                objectcode.append([loc_counter,ocode])
                 continue
             elif(form == 3):
                 opcode = opcode >> 2
@@ -238,12 +255,16 @@ def SecondPass():
         if(len(objectcode[-1][2]) < size):
             objectcode[-1][2] = (size - len(objectcode[-1][2]))*'0' + objectcode[-1][2]
         ocode = bin(objectcode[-1][0])[2:] + objectcode[-1][1] #+ objectcode[-1][2]
-        ocode = hex(int(ocode,2))[2:] + objectcode[-1][2]
+        ocode = pad(hex(int(ocode,2))[2:],3,'0')
+        ocode += objectcode[-1][2]
+        
         ocode = pad(ocode,6,'0')
-        print(objectcode[-1])
+        # print(objectcode[-1])
         objectcode[-1][0] = hex(objectcode[-1][0])
         objectcode[-1] = [loc_counter,ocode]
-        print(loc_counter, label, instruction, target, objectcode[-1])
+        printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ocode
+        SecondPass_printable_table.append(printered)
+        # print(loc_counter, label, instruction, target, objectcode[-1])
         
         # print(ocode)
         # print(objectcode[-1][1])
@@ -257,7 +278,10 @@ def SecondPass():
     
 
 SecondPass()
-
+opened_file = open("output/SecondPass_Output.txt",'w')
+for i in SecondPass_printable_table:
+    opened_file.write(i+'\n')
+opened_file.close()
 
 def GenerateHRecord():
     program_name, starting_address = first_line
@@ -271,41 +295,54 @@ def GenerateHRecord():
     starting_address = pad(starting_address,6,'0')#((6 - len(starting_address))*'0'+ starting_address)
     star = "H." + program_name + seperator + starting_address + seperator + program_size
     return(star)
-for e in objectcode:
-    print(e)
+# for e in objectcode:
+#     print(e)
 def GenerateTRecords():
     records = []
     max_size = 10
     size=0
-    opcode_record = 'T'
-    starting_address = objectcode[0][0]
-    print(starting_address)
+    opcode_record = ''
+    starting_address = objectcode[0][0][2:]
+    # print(starting_address)
+    def addRecord(address,size,opcode):
+        address = pad(address,6,'0')
+        size = pad(hex(int(size/2))[2:],2,'0')
+        record = 'T.'+address + '.' +size + opcode
+        records.append(record)
+        # print(records[-1])
     for loc_counter,opcode in objectcode:
         if(size == 0):
-            starting_address= loc_counter
+            starting_address= loc_counter[2:]
         if(opcode == placeholder):
-            print("skipped")
+            # print("skipped")
             continue
         if(opcode == skipper):
-            print("skipper'd")
-            print(starting_address,size/2,opcode_record)
+            # print("skipper'd")
+            # print(pad(starting_address,6,'0'),pad(hex(int(size/2))[2:],2,'0'),opcode_record)
+            if(size == 0):
+                continue
+            addRecord(starting_address, size, opcode_record)
+
             size = 0
-            opcode_record = 'T'
+            opcode_record = ''
             continue
 
         if(size + len(opcode) > 60):
-            print(starting_address,size/2,opcode_record)
+            # print(pad(starting_address,6,'0'),pad(hex(int(size/2))[2:],2,'0'),opcode_record)
+            addRecord(starting_address, size, opcode_record)
             # if(loc_counter == '$'):
             #     continue
-            starting_address = loc_counter
+            starting_address = loc_counter[2:]
             size = len(opcode)
-            opcode_record = 'T.' + opcode
+            opcode_record = '.' + opcode
             continue
         # print("premod",size,'+',len(opcode),opcode,opcode_record)
         size += len(opcode)
         opcode_record += '.'+opcode
         # print("postmod",size,opcode_record)
-    print(starting_address,size/2,opcode_record)
+    # print(pad(starting_address,6,'0'),pad(hex(int(size/2))[2:],2,'0'),opcode_record)
+    addRecord(starting_address, size, opcode_record)
+    return records
             # if(loc_counter == '$'):
             #     continue
     # starting_address = loc_counter
@@ -314,5 +351,7 @@ def GenerateTRecords():
 # for i in objectcode:
 #     print(i)
 print(GenerateHRecord())
-GenerateTRecords()
+recs = GenerateTRecords()
+for i in recs:
+    print(i)
 # def GenerateHTE():
