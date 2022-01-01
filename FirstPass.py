@@ -4,6 +4,8 @@ from FirstPassUtility import *
 symbol_table = {}
 literal_table = {}
 tmp_literals = {}
+external_references = []
+
 FirstPass_output = []
     
 def FirstPass(file_location):
@@ -29,7 +31,7 @@ def FirstPass(file_location):
 
         if(target[0] == '='): #check for literals
             target = target[1:]
-            print("This is the problem")
+            # print("This is the problem")
             size = convertOutliers(target)
             loc_counter += getInstructionSize(instruction)
             literal_table[target[2:-1]] = [hex(loc_counter),size,identifyData(target)]
@@ -48,6 +50,13 @@ def FirstPass(file_location):
         elif(instruction == "BYTE"):
             size = convertOutliers(target)
             #loc_counter += convertOutliers(target)
+        elif(instruction == "EXTREF"): #external references implementation
+            for i in target.split(','):
+                external_references.append(i)
+            # print(external_references)
+            continue
+        elif(instruction == "EXTDEF"):
+            continue
         elif(instruction == 'LTORG'):
             # print(FirstPass_output)
             if(target == '*' or target == placeholder):
@@ -55,14 +64,14 @@ def FirstPass(file_location):
                 # loc_counter += getLiteralSize(literal_table)
                 tmp_literals.clear()
                 # literal_table = {}
-            print(literal_table)
+            # print(literal_table)
         elif(instruction == 'END'):
             if(tmp_literals!={}):
                 # generateLiterals(literal_table,loc_counter)
                 loc_counter = generateLiterals(literal_table,tmp_literals ,FirstPass_output,loc_counter)
-                print(literal_table)
+                # print(literal_table)
                 tmp_literals.clear()
-            print(literal_table)
+            # print(literal_table)
             # literal_table = {}
         elif(instruction == "BASE"):
             if(target == placeholder or target == '*'):
@@ -74,7 +83,7 @@ def FirstPass(file_location):
     print("final memory location: " + hex(loc_counter))
     if(base_target):
         base_loc = symbol_table.get(base_target)
-        print("base and location works inside",base_target,hex(base_loc))
+        # print("base and location works inside",base_target,hex(base_loc))
 
     opened_file.close()    
     #write to loc + file to output.txt
@@ -97,6 +106,6 @@ def FirstPass(file_location):
     opened_file.close()
     return base_loc,base_target,loc_counter
 
-# print(FirstPass("Example_4.txt"))
+# print(FirstPass("Example_extref.txt"))
 
 # import SecondPass

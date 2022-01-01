@@ -1,8 +1,9 @@
 from FirstPassUtility import *
 from FirstPass import *
-
-base_loc,base_target,final_address = FirstPass("Example_4.txt")
+import re
+base_loc,base_target,final_address = FirstPass("Example_extref.txt")
 SecondPass_printable_table = []
+external_definitions = []
 # for i in FirstPass_output:
 #     print(i)
 objectcode = []
@@ -18,6 +19,14 @@ def pad(star,size,char):
 def directive():
     return(['0','0','0','0','0'],0)
 
+def splitTarget(star):
+    return re.split('(\+|-)',star)
+    # locations = []
+    # new_str = re.split('(\+|-)',star)
+    # locations.append(new_str.pop(0))
+    # for i in range(len(new_str) -2 ):
+    #     locations.append(new_str.pop(0)+new_str.pop(0))
+    # return(locations)
 
 def SecondPass():
     mod_flag = False
@@ -58,6 +67,15 @@ def SecondPass():
         flags = "".join(flags)
         return([flags, target_address])
         # return(getFlags(loc_counter,4,target))
+    def getSymbol(symbol_name):
+        symbol = symbol_table.get(symbol_name,0)
+        # print(symbol,symbol_name)
+        if(symbol_name in external_references):
+            print(symbol_name,symbol,"dont exist, idiotta")
+            size = 5 if instruction[0] in ['+','$'] else 3
+            modification_table.append([loc_counter,symbol_name,size])
+            return 0
+        return symbol
     def getFlags(loc_counter,format,target):     #Immediate “#” i=1, n=0 Value = TA
                                 #Indirect “@” i=0, n=1 Value = ((TA))
         n,i,x,b,p,e = '1','1','0','0','0','0'   #simple in sicxe i=1 , n=1 Value = (TA)
@@ -73,7 +91,7 @@ def SecondPass():
                 target_address = int(target)
                 return([n,i,x,b,p,e],(target_address))
             except:
-                target_address = symbol_table.get(target)
+                target_address = getSymbol(target)
                 return([n,i,x,b,p,e],(target_address))
 
         elif('@' in target):
@@ -88,27 +106,46 @@ def SecondPass():
                 target_address = int(target)
                 return([n,i,x,b,p,e],(target_address))
             except:
-                target_address = symbol_table.get(target)
+                target_address = getSymbol(target)
                 # print("try me none",target)
                 # print(target_address)
                 return([n,i,x,b,p,e],(target_address))
         elif('=' in target):
             target_address = int(literal_table.get(target[3:-1])[0],16)
             # print("literal check",target[3:-1],target_address)
+        # elif('+' in target or '-' in target):
+        #     #modification record thingie
+        #     targets = splitTarget(target)
+        #     target_symbol = targets.pop(0)
+        #     target_address = getSymbol(target_symbol)
+        #     while(targets):
+        #         sign = targets.pop(0)
+        #         target_symbol = targets.pop(0)
+        #         new_target = getSymbol(target_symbol,-1)
+        #         if(new_target == -1):
+        #             print()
+        #             modification_table.append([loc_counter,target_symbol,5])
+        #             target_address +=0
+        #         elif(sign == '+'):
+        #             target_address += new_target
+        #         else:
+        #             target_address -= new_target
+            
+
         else:
-            target_address = symbol_table.get(target)
+            target_address = getSymbol(target)
         if(',X' in target):
             x = '1'
             target = target[0:-2]
-            target_address = symbol_table.get(target)
+            target_address = getSymbol(target)
             return([n,i,x,b,p,e],(target_address))
-        # target_address = symbol_table.get(target)
+        # target_address = getSymbol(target)
         if(format in [4,6] ):
             if(flagzby==1):
                 target_address=int(target)
             b,p,e = '0','0','1'
             return([n,i,x,b,p,e],(target_address))
-        # print(symbol_table.get(target))
+        # print(getSymbol(target))
         # print(loc_counter)
         disp = target_address - (int(loc_counter,16) + format)
         # print("base and displacement",base_loc,disp)
@@ -151,6 +188,14 @@ def SecondPass():
                 # ocode.append(pad(identifyData(target),2,'0'))
             elif(instruction == "RESW" or instruction == "RESB"):
                 objectcode.append([loc_counter,skipper])
+            elif(instruction == "EXTREF"):
+                continue
+            elif(instruction == "EXTDEF"):
+                for i in target.split(','):
+                    external_definitions.append([getSymbol(i),i])
+                print(external_definitions)
+                continue
+
             else:
                 objectcode.append([loc_counter,placeholder])
             ocode = objectcode[-1][1]
@@ -170,18 +215,12 @@ def SecondPass():
             mod_flag = True
 
         elif(instruction[0] =='&'):
-
-            
-            # instruction = instruction[1:]
-            # opcode = instruction_table.get(instruction)[1]
             form,opcode = instruction_table.get(instruction[1:])
             form+=1
             opcode = opcode >> 2
             objectcode.append([opcode,*format5(loc_counter,target)])
 
         elif(instruction[0] =='$'):
-            # instruction = instruction[1:]
-            # opcode = instruction_table.get(instruction)[1]
             form,opcode = instruction_table.get(instruction[1:])
             form+=1
             opcode = opcode >> 2
@@ -193,17 +232,12 @@ def SecondPass():
             continue
         else:
             form,opcode = instruction_table.get(instruction)
-            # print(form,hex(opcode))
             if(form == 1):
-                # format1()
                 printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ opcode
                 SecondPass_printable_table.append(printered)
                 objectcode.append([loc_counter,opcode])
                 continue
             elif(form == 2):
-                # dat = int(opcode,16)
-                # dat = hex(dat),format2(target)
-                # print(loc_counter,instruction,target)
                 ocode = hex(opcode)[2:]+"".join(format2(target))
                 printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ocode
                 SecondPass_printable_table.append(printered)
@@ -212,46 +246,6 @@ def SecondPass():
             elif(form == 3):
                 opcode = opcode >> 2
                 objectcode.append([opcode,*format3(loc_counter,target)])
-            # print(instruction,form,hex(opcode))
-        # print(objectcode[-1][1])
-        
-        # a= (int(objectcode[-1][1][0],2)<<1)
-        # b= (int(objectcode[-1][1][1],2)<<0)  
-        # bin(int(objectcode[-1][1][1],2)<<0) 
-        # c=hex(a+b)
-        # d=hex(objectcode[-1][0])
-        # #print(c)
-        # #print(d)
-        # e=hex(int(c,16)+int(d,16))
-        # print(e)
-        # if( int(e,16) < 15 ):
-        #     hex(int(e,16) << 1)
-        #     print(e)
-
-        # a= (int(objectcode[-1][1][2],2)<<3)
-        # b= (int(objectcode[-1][1][3],2)<<2)
-        # c= (int(objectcode[-1][1][4],2)<<1)
-        # d= (int(objectcode[-1][1][5],2)<<0)
-
-        # e=hex(a+b+c+d)
-        # print(e)
-
-
-
-        #last element in array, which contains the opcode
-        #shifts the opcode right twice to get rid of 2 zeroes
-        # [opcode, [flag array],target_address]
-        # (objectcode[-1])[1] = "".join(objectcode[-1][1])
-        # objectcode[-1][0] = objectcode[-1][0] >> 2
-        #(0b)111111
-        # print(objectcode[-1][1])
-
-        # print(target,objectcode[-1])
-
-        # if(objectcode[-1][0] == placeholder):
-        #     continue
-        #     print("objectcode[0]")
-            # print(loc_counter, label, instruction, target, objectcode[-1],ocode)
         
         objectcode[-1][2] = hex(objectcode[-1][2])[2:]
         size = 3 if form == 3 else 5
@@ -265,22 +259,10 @@ def SecondPass():
         ocode += objectcode[-1][2]
         
         ocode = pad(ocode,6,'0')
-        # print(objectcode[-1])
         objectcode[-1][0] = hex(objectcode[-1][0])
         objectcode[-1] = [loc_counter,ocode]
         printered = loc_counter+' | '+label +' '+instruction+' '+target+' | '+ocode
         SecondPass_printable_table.append(printered)
-        # print(loc_counter, label, instruction, target, objectcode[-1])
-        
-        # print(ocode)
-        # print(objectcode[-1][1])
-        # x b p e
-        # 1 0 0 0
-        # 0 1 0 0
-        #
-        
-        
-        # print(instruction,form,hex(opcode))
     
 
 SecondPass()
@@ -358,12 +340,25 @@ def GenerateTRecords():
 #     print(i)
 def GenerateERecord():
     return( 'E.' + pad(objectcode[0][0][2:],6,'0'))
+def GenerateRRecord():
+    records = 'R'
+    for rec in external_references:
+        records += '.' +pad(rec,-6,padding)
+    return(records)
 def GenerateMRecord():
     records = []
+    if(objectcode[0][0][2:] != '0'):
+        print("No address relocation will occur")
+        return
+    
     for loc,inst,offset in modification_table:
+        # print(modification_table)
         loc = pad(loc[2:],6,'0') + '.'
         offset = pad(hex(offset)[2:],2,'0')#+'.' #disabled till sectioning is done
-        records.append("M."+loc+offset)
+        record = "M."+loc+offset
+        if(inst in external_references):
+            record += '.+'+inst
+        records.append(record)
     return records
 # print(GenerateHRecord())
 # recs = GenerateTRecords()
@@ -371,17 +366,26 @@ def GenerateMRecord():
 #     print(i)
 # GenerateERecord()
 # print(GenerateERecord())
-
-print(modification_table)
-def GenerateHTE():
+def GenerateDRecord():
+    records = 'D'
+    for loc,symbol in external_definitions:
+        loc = pad(hex(loc)[2:],6,'0')
+        symbol = '.' + pad(symbol,-6,padding)
+        records += '.' + loc + symbol
+    return(records)
+def GenerateHDRTME():
     opened_file = open("output/hte_record.txt",'w')
     opened_file.write(GenerateHRecord()+'\n')
+    opened_file.write(GenerateDRecord()+'\n')
+    opened_file.write(GenerateRRecord()+'\n')
     Trecs = GenerateTRecords()
     Mrecs = GenerateMRecord()
+    # print(Mrecs)
     for rec in Trecs:
         opened_file.write(rec+'\n')
     for rec in Mrecs:
         opened_file.write(rec+'\n')
     opened_file.write(GenerateERecord())
     opened_file.close()
-GenerateHTE()
+GenerateHDRTME()
+# print(splitTarget("ab+ac-ad"))

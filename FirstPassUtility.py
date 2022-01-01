@@ -86,7 +86,7 @@ def identifyData(star):
 #global variables
 instruction_table = loadInstructions("InstructionDictionary.txt")
 special_instructions = ['+','$','&']
-reserved = ["BASE","RESW","RESB","WORD","BYTE","END","LTORG"]
+reserved = ["BASE","RESW","RESB","WORD","BYTE","END","LTORG","EXTREF","EXTDEF"]
 registers = {"A":"0","X":"1","L":"2","B":"3","S":"4","T":"5","F":"6"}
 placeholder = '-'
 skipper = '?'
