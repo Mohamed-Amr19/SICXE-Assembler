@@ -1,7 +1,7 @@
 from FirstPassUtility import *
 from FirstPass import *
 import re
-base_loc,base_target,final_address = FirstPass("Example_extref.txt")
+base_loc,base_target,final_address = FirstPass("Example_SpecialFormats.txt")
 SecondPass_printable_table = []
 external_definitions = []
 objectcode = []
@@ -47,10 +47,16 @@ def SecondPass():
         return([flags, target_address])
     def format5(loc_counter,target):
         flags,target_address = getFlags(loc_counter,3,target)
+        flags[0] = '0' if target_address %3 == 0 else '1'
+        flags[1] = '0' if target_address > 0 else '1'
+        flags[2] = '1' if target_address == 0 else '0'
         flags = "".join(flags)
         return([flags, target_address])
     def format6(loc_counter,target):
         flags,target_address = getFlags(loc_counter,4,target)
+        flag[3] = '0' if target_address % 3 == 0 else '1'
+        flag[4] = '0' if target_address == 0 else '1'
+        flag[5] = '0' if target_address == base_loc else '1'
         flags = "".join(flags)
         return([flags, target_address])
     def getSymbol(symbol_name):
