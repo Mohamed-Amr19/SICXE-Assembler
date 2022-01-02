@@ -1,4 +1,6 @@
 __pycache__/
 out.txt
+output.txt
+output/
 SymbolTable.txt
 test.py
