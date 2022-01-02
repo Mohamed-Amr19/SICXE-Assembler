@@ -23,6 +23,9 @@ def splitLine(line):
 
 def getFirstLine(line):
     program_name, START, starting_address = line.upper().split()
+    if(len(line.split()) != 3):
+        print("First line error, missing parameters")
+        exit()
     if START != "START":
         print("first line error: no start")
         exit()
@@ -66,11 +69,24 @@ def getLiteralSize(literal_table):
 def generateLiterals(literal_table,tmp_literals, FirstPass_output,loc):
     for literal in tmp_literals:
         FirstPass_output.append([hex(loc),placeholder,placeholder,tmp_literals.get(literal)[2]])
+        # print(literal_table[literal][0])
         literal_table[literal][0] = hex(loc)
         loc += literal_table[literal][1]
     return loc
 def identifyData(star):
-    if(star[0].upper() == 'C'):
+    if(',' in star):
+        arr = star.split(',')
+        output = ''
+        for ch in arr:
+            if(ch[0].upper() == 'C'):
+                dat = hex(ord(ch[2]))[2:]
+                for ch in ch[3:-1]:
+                    dat += hex(ord(ch))[2:]
+                output+= dat
+            elif(ch[0].upper() == 'X'):
+                output+= ch[2:-1]
+        return output
+    elif(star[0].upper() == 'C'):
         dat = hex(ord(star[2]))[2:]
         for ch in star[3:-1]:
             dat += hex(ord(ch))[2:]
@@ -79,6 +95,8 @@ def identifyData(star):
         return star[2:-1]
     else:
         return hex(int(star))[2:]
+
+
 #global variables
 instruction_table = loadInstructions("InstructionDictionary.txt")
 special_instructions = ['+','$','&']

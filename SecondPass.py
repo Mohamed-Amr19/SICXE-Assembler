@@ -83,9 +83,9 @@ def SecondPass():
         return([flags, target_address])
     def format6(loc_counter,target):
         flags,target_address = getFlags(loc_counter,4,target)
-        flag[3] = '0' if target_address % 3 == 0 else '1'
-        flag[4] = '0' if target_address == 0 else '1'
-        flag[5] = '0' if target_address == base_loc else '1'
+        flags[3] = '0' if target_address % 3 == 0 else '1'
+        flags[4] = '0' if target_address == 0 else '1'
+        flags[5] = '0' if target_address == base_loc else '1'
         flags = "".join(flags)
         return([flags, target_address])
     def getSymbol(symbol_name):
@@ -95,6 +95,7 @@ def SecondPass():
             modification_table.append([loc_counter,symbol_name,size])
             return 0
         return symbol
+
     def getFlags(loc_counter,format,target):     #Immediate “#” i=1, n=0 Value = TA
                                 #Indirect “@” i=0, n=1 Value = ((TA))
         n,i,x,b,p,e = '1','1','0','0','0','0'   #simple in sicxe i=1 , n=1 Value = (TA)

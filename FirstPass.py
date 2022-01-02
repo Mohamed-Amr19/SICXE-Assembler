@@ -32,7 +32,7 @@ def FirstPass(file_location):
             symbol_table[label] = loc_counter
 
         
-
+        # print(target)
         if(target[0] == '='): #check for literals
             target = target[1:]
             size = convertOutliers(target)
@@ -51,6 +51,7 @@ def FirstPass(file_location):
             loc_counter += int(target)
         elif(instruction == "BYTE"):
             size = convertOutliers(target)
+            loc_counter += size
         elif(instruction == "EXTREF"): #external references implementation
             for i in target.split(','):
                 external_references.append(i)
@@ -75,7 +76,6 @@ def FirstPass(file_location):
             except:
                 print("Symbol not yet in table, exiting because :", target,"doesn't exist")
                 exit()
-            print(symbol_table)
         elif(instruction == 'END'):
             if(tmp_literals!={}):
                 loc_counter = generateLiterals(literal_table,tmp_literals ,FirstPass_output,loc_counter)
