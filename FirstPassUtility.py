@@ -79,11 +79,10 @@ def identifyData(star):
         return star[2:-1]
     else:
         return hex(int(star))[2:]
-
 #global variables
 instruction_table = loadInstructions("InstructionDictionary.txt")
 special_instructions = ['+','$','&']
-reserved = ["BASE","RESW","RESB","WORD","BYTE","END","LTORG","EXTREF","EXTDEF"]
+reserved = ["BASE","RESW","RESB","WORD","BYTE","END","LTORG","EXTREF","EXTDEF","EQU"]
 registers = {"A":"0","X":"1","L":"2","B":"3","S":"4","T":"5","F":"6"}
 placeholder = '-'
 skipper = '?'

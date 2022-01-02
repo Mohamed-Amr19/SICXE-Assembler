@@ -57,6 +57,21 @@ def FirstPass(file_location):
             if(target == '*' or target == placeholder):
                 loc_counter = generateLiterals(literal_table, tmp_literals,FirstPass_output,loc_counter)
                 tmp_literals.clear()
+        elif(instruction == "EQU"):
+            if(label == placeholder):
+                print("Missing label with EQU, exiting ")
+                exit()
+            if(target == '*' or target == placeholder):
+                continue
+            # if(symbol_table.get(target,-1) == -1):
+            #     print("Symbol not yet in table, exiting because :", target,"doesn't exist")
+            #     exit()
+            try:
+                symbol_table[label] = int(identifyData(target),16)
+            except:
+                print("Symbol not yet in table, exiting because :", target,"doesn't exist")
+                exit()
+            print(symbol_table)
         elif(instruction == 'END'):
             if(tmp_literals!={}):
                 loc_counter = generateLiterals(literal_table,tmp_literals ,FirstPass_output,loc_counter)

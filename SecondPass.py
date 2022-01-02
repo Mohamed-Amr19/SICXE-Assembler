@@ -1,7 +1,13 @@
 from FirstPassUtility import *
 from FirstPass import *
 import re
-base_loc,base_target,final_address = FirstPass("Example_SpecialFormats.txt")
+import sys 
+if(len(sys.argv) == 1):
+    base_loc,base_target,final_address = FirstPass(input("Available Example files: Example_1.txt, Example_2.txt, Example_Book_P94.txt\nExample_3.txt, Example_4.txt\nEntire File name: "))
+else:
+    args = sys.argv[1:]
+    base_loc,base_target,final_address = FirstPass(args[0])
+# base_loc,base_target,final_address = FirstPass(arg)
 SecondPass_printable_table = []
 external_definitions = []
 objectcode = []
@@ -144,6 +150,8 @@ def SecondPass():
                 objectcode.append([loc_counter,skipper])
             elif(instruction == "EXTREF"):
                 continue
+            elif(instruction == "EQU"):
+                continue
             elif(instruction == "EXTDEF"):
                 for i in target.split(','):
                     external_definitions.append([getSymbol(i),i])
@@ -230,7 +238,7 @@ def GenerateHRecord():
 
     starting_address = hex(starting_address)[2:]
     starting_address = pad(starting_address,6,'0')#((6 - len(starting_address))*'0'+ starting_address)
-    star = "H." + program_name + seperator + starting_address + seperator + program_size
+    star = "H." + program_name + seperator + starting_address + seperator + program_size + '\n'
     return(star)
 def GenerateTRecords():
     records = []
@@ -297,17 +305,26 @@ def GenerateDRecord():
         records += '.' + loc + symbol
     return(records)
 def GenerateHDRTME():
-    opened_file = open("output/hte_record.txt",'w')
-    opened_file.write(GenerateHRecord()+'\n')
-    opened_file.write(GenerateDRecord()+'\n')
-    opened_file.write(GenerateRRecord()+'\n')
+    opened_file = open("output/hdrtme_record.txt",'w')
+    Hrecord = GenerateHRecord()
+    Drecord = GenerateDRecord()
+    Rrecord = GenerateRRecord()
+    opened_file.write(Hrecord)
+    if(Drecord != 'D'):
+        # print(Drecord)
+        opened_file.write(Drecord+'\n')
+    if(Rrecord != 'R'):
+        # print(Rrecord)
+        opened_file.write(Rrecord+'\n')
     Trecs = GenerateTRecords()
     Mrecs = GenerateMRecord()
+    
     # print(Mrecs)
     for rec in Trecs:
         opened_file.write(rec+'\n')
-    for rec in Mrecs:
-        opened_file.write(rec+'\n')
+    if(Mrecs):    
+        for rec in Mrecs:
+            opened_file.write(rec+'\n')
     opened_file.write(GenerateERecord())
     opened_file.close()
 GenerateHDRTME()
