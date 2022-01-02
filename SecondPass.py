@@ -3,7 +3,30 @@ from FirstPass import *
 import re
 import sys 
 if(len(sys.argv) == 1):
-    base_loc,base_target,final_address = FirstPass(input("Available Example files: Example_1.txt, Example_2.txt, Example_Book_P94.txt\nExample_3.txt, Example_4.txt\nEntire File name: "))
+    star = """Available Example files: 
+    1)Example_1.txt 
+    2)Example_2.txt
+    3)Example_3.txt
+    4)Example_4.txt
+    5)Example_Book_P94.txt
+    6)Example_extref.txt
+    7)Example_SpecialFormats.txt
+    \nEntire File number: """
+    examples = {
+        '1':"Example_1.txt",
+        '2':"Example_2.txt",
+        '3':"Example_3.txt",
+        '4':"Example_4.txt",
+        '5':"Example_Book_P94.txt",
+        '6':"Example_extref.txt",
+        '7':"Example_SpecialFormats.txt"
+        }
+    inp = examples.get(input(star),0)
+    if(inp):
+        base_loc,base_target,final_address = FirstPass(inp)
+    else:
+        print("Wrong input, exiting")
+        exit()
 else:
     args = sys.argv[1:]
     base_loc,base_target,final_address = FirstPass(args[0])

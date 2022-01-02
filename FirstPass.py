@@ -15,7 +15,11 @@ def FirstPass(file_location):
     base_loc = 0
     base_target = None
     #this code can be reused in 2nd pass
-    opened_file = open(file_location)
+    try:
+        opened_file = open(file_location)
+    except:
+        print("File doesn't exist, exiting.")
+        exit()
     program_name, START, starting_address = getFirstLine(opened_file.readline()) 
     loc_counter = int(starting_address,16)             #Relocation stuff
     printable_table.append([hex(loc_counter),program_name,START,hex(loc_counter)])
