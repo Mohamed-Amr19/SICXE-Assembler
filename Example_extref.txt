@@ -41,7 +41,7 @@ WRREC    CLEAR    X
 WLOOP    TD        =X'09'
         JEQ        WLOOP
         LDCH    BUFFER,X
-        WD        =X'09'
+        WD        =X'03'
         TIXR    T
         JLT        WLOOP        
         RSUB
